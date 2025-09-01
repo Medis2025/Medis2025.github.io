@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>弱水 · AquaFlow｜一瓢飲，見本真</title>
+  <meta name="description" content="弱水 · AquaFlow：端側推理 · 超級低成本 · 4B模型處理20–100篇PDF。弱水三千，只取一瓢飲。" />
+  <style>
+    :root{
+      --bg1:#eaf4ff; --bg2:#ffffff; --bg3:#bcd9ff;
+      --ink:#0b1550; --muted:#4a5a8a; --primary:#2a73ff; --accent:#75c5ff;
+      --glass:rgba(255,255,255,0.7); --glass-strong:rgba(255,255,255,0.85);
+      --shadow:0 20px 50px rgba(22,72,155,.15); --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; color:var(--ink); overflow-x:hidden}
+    .bg-anim{position:fixed; inset:0; z-index:-2; background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3)); background-size:300% 300%; animation:grad 22s ease-in-out infinite}
+    @keyframes grad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .glow{position:fixed; inset:0; z-index:-1; pointer-events:none; filter:blur(60px)}
+    .glow::before,.glow::after{content:""; position:absolute; border-radius:50%; width:38vw; height:38vw; opacity:.35; background:radial-gradient(closest-side,var(--accent),transparent 70%); animation:drift 28s ease-in-out infinite}
+    .glow::before{left:-10vw; top:-6vw}
+    .glow::after{right:-12vw; bottom:-10vw; animation-delay:-8s}
+    @keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(6vw,4vw)}}
+    canvas#dots{position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.45}
+
+    .nav{max-width:1120px; margin:0 auto; padding:18px 20px; display:flex; align-items:center; justify-content:space-between}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:700}
+    .logo{width:38px; height:38px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(135deg,var(--primary),#6fb3ff); color:#fff; box-shadow:var(--shadow)}
+    .nav a{color:var(--muted); text-decoration:none; margin-left:18px}
+    .cta{background:var(--primary); color:#fff; padding:10px 16px; border-radius:12px; text-decoration:none; box-shadow:0 8px 24px rgba(42,115,255,.25)}
+
+    .hero{max-width:1120px; margin:40px auto; padding:0 20px; text-align:center}
+    .headline{font-size:44px; margin:0 0 14px}
+    .headline b{background:linear-gradient(90deg,var(--primary),#2fb5ff); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .tag{display:inline-block; padding:6px 10px; border-radius:999px; background:var(--glass-strong); backdrop-filter:blur(10px); font-size:13px; color:var(--muted); box-shadow:var(--shadow)}
+    .hero p{font-size:18px; color:#2b3e77; margin:12px 0 22px}
+
+    .demo{max-width:960px; margin:60px auto; display:flex; gap:30px; padding:0 20px; align-items:center}
+    .pdf-box{flex:1; display:flex; justify-content:center; align-items:center; position:relative; height:220px}
+    .pdf-icon{font-size:60px; color:var(--primary); position:absolute; animation:drop 4s infinite}
+    @keyframes drop{0%{top:-60px; opacity:0}30%{top:40px; opacity:1}70%{top:100px; opacity:1}100%{top:180px; opacity:0}}
+
+    .output-box{flex:2; background:var(--glass-strong); border-radius:16px; padding:20px; font-family:"Fira Code", "JetBrains Mono", ui-monospace, monospace; font-size:15px; color:#1e3172; box-shadow:var(--shadow); min-height:160px}
+    .cursor{display:inline-block; width:10px; background:#2a73ff; margin-left:2px; animation:blink 1s step-end infinite}
+    @keyframes blink{50%{background:transparent}}
+
+    .section{max-width:1120px; margin:40px auto; padding:0 20px}
+    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+    .card{background:var(--glass-strong); border-radius:18px; padding:16px; box-shadow:var(--shadow)}
+    .card h3{margin:6px 0 8px; font-size:18px}
+    .card p{margin:0; color:#324c86}
+
+    footer{max-width:1120px; margin:40px auto 30px; padding:0 20px; color:var(--muted); display:flex; align-items:center; justify-content:space-between}
+
+    /* —— 豎排「弱水大模型」徽標 —— */
+    .vertical-flag{
+      position:fixed; left:14px; top:50%; transform:translateY(-50%);
+      writing-mode:vertical-rl; text-orientation:upright;
+      letter-spacing:2px; font-weight:800; font-size:20px; line-height:1.1;
+      color:#fff; background:linear-gradient(180deg,#2a73ff,#2fb5ff);
+      border-radius:14px; padding:18px 10px; box-shadow:0 12px 30px rgba(42,115,255,.35);
+      backdrop-filter:blur(6px); user-select:none; z-index:10;
+    }
+    .vertical-flag::after{ /* 小裝飾點 */
+      content:""; width:6px; height:6px; border-radius:50%; display:block; margin:10px auto 0; background:rgba(255,255,255,.9);
+    }
+
+    /* 行動版適配 */
+    @media (max-width: 900px){
+      .grid{grid-template-columns:1fr 1fr}
+      .demo{flex-direction:column}
+    }
+    @media (max-width: 600px){
+      .headline{font-size:34px}
+      .vertical-flag{left:6px; font-size:16px; padding:14px 8px; border-radius:10px}
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-anim"></div>
+  <div class="glow"></div>
+  <canvas id="dots"></canvas>
+
+  <!-- 豎排「弱水模型」：始終顯著可見 -->
+  <div class="vertical-flag" aria-label="弱水模型">弱水模型</div>
+
+  <nav class="nav" aria-label="主導覽">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">水</div>
+      <div>弱水 · <span style="opacity:.8">AquaFlow</span></div>
+    </div>
+    <div>
+      <a href="#demo">演示</a>
+      <a href="#features">特性</a>
+      <a class="cta" href="#connect">聯繫</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <span class="tag">弱水三千 · 只取一瓢</span>
+    <h1 class="headline">讓資訊如水，<b>流向所需</b></h1>
+    <p>端側推理 · 超低成本 · 僅需4B即可即時處理20–100篇PDF<br>在喧囂的資訊之海中，我們相信<b>節制與專注</b>比「更多」更珍貴。<br><small style='color:#4a5a8a'>「君子之交淡如水，小人之交甘若醴；君子淡以親，小人甘以絕。故曰：君子之交淡若水，弱水三千，我只取一瓢飲」 [莊子·外物]</small></p>
+  </header>
+
+  <section class="demo" id="demo" aria-label="演示">
+    <div class="pdf-box">
+      <div class="pdf-icon" aria-hidden="true">📄</div>
+    </div>
+    <div class="output-box" id="typewriter" aria-live="polite" aria-atomic="true"></div>
+  </section>
+
+  <section class="section" id="features">
+    <h2>弱水六義</h2>
+    <div class="grid">
+      <div class="card"><h3>高效推理</h3><p>採用輕量級架構與上下文壓縮策略，保證小模型也能完成複雜推理。</p></div>
+      <div class="card"><h3>層級建模</h3><p>以樹狀引用方式組織知識，避免語義漂移，實現層級化資訊管理。</p></div>
+      <div class="card"><h3>語境對齊</h3><p>透過上下文對齊（context alignment），確保輸出內容與證據路徑一致。</p></div>
+      <div class="card"><h3>可解釋性</h3><p>輸出均帶有顯式引用（cite），增強透明度與結果可信度。</p></div>
+      <div class="card"><h3>低資源適配</h3><p>在4B參數規模下即可運行，適配端側與低成本部署場景。</p></div>
+      <div class="card"><h3>學術嚴謹</h3><p>遵循生物醫學資訊處理規範，強調證據、出處與邏輯鏈條。</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="connect">
+    <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:16px">
+      <div>
+        <h3 style="margin:0 0 6px">與我們談談</h3>
+        <p style="margin:0; color:#36507f">如果你也在尋找一種更克制、更有分寸的方式來對待資訊，我們很高興與您交流。</p>
+      </div>
+      <a class="cta" href="mailto:medis2025@outlook.com">寫信給我們</a>
+    </div>
+  </section>
+
+  <footer>
+    <div>© 弱水 · AquaFlow</div>
+    <div style="font-size:12px"> 一瓢飲 · 端側推理</div>
+  </footer>
+
+  <script>
+    // 粒子背景
+    (function(){const c=document.getElementById('dots');const ctx=c.getContext('2d');let w,h,pxls=[];const N=70;function resize(){w=innerWidth;h=innerHeight;c.width=w;c.height=h}addEventListener('resize',resize);resize();function spawn(){pxls=[];for(let i=0;i<N;i++){pxls.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.6+0.6,a:.15+Math.random()*.25});}}spawn();(function step(){ctx.clearRect(0,0,w,h);for(const p of pxls){p.x+=p.vx;p.y+=p.vy;if(p.x<-10)p.x=w+10;if(p.x>w+10)p.x=-10;if(p.y<-10)p.y=h+10;if(p.y>h+10)p.y=-10;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(117,197,255,${p.a})`;ctx.fill();}requestAnimationFrame(step);})();})();
+
+    // 打字機動畫（保持原有內容）
+    const demoText = [
+      "<statement>UGT1A7 啟動子變異可致轉錄效率下降，酶活性約為野生型30%。</statement><cite>[c3,6,3]</cite>",
+      "<statement>報告建議對高同源基因和小片段CNV進行補充驗證。</statement><cite>[c4,2,3][c4,3,3]</cite>",
+      "<statement>多個PDF輸入，也能分析並輸出帶cite的語句。</statement><cite>[c1,2,2]</cite>"
+    ];
+    let i=0, j=0; const box=document.getElementById('typewriter');
+    function type(){
+      if(i<demoText.length){
+        if(j<demoText[i].length){
+          box.innerHTML = demoText[i].substring(0,j)+"<span class='cursor'></span>";
+          j++; setTimeout(type,30);
+        }else{ j=0; i++; setTimeout(type,1000); }
+      }else{ i=0; j=0; setTimeout(type,1000); }
+    }
+    type();
+  </script>
+</body>
+</html>

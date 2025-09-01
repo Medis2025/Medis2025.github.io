@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AquaFlow｜One Sip, True Essence</title>
+  <meta name="description" content="AquaFlow: On-device inference · Ultra-low cost · 4B model processes 20–100 PDFs. Three thousand rivers, one sip is enough." />
+  <style>
+    :root{
+      --bg1:#eaf4ff; --bg2:#ffffff; --bg3:#bcd9ff;
+      --ink:#0b1550; --muted:#4a5a8a; --primary:#2a73ff; --accent:#75c5ff;
+      --glass:rgba(255,255,255,0.7); --glass-strong:rgba(255,255,255,0.85);
+      --shadow:0 20px 50px rgba(22,72,155,.15); --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; color:var(--ink); overflow-x:hidden}
+    .bg-anim{position:fixed; inset:0; z-index:-2; background:linear-gradient(120deg,var(--bg1),var(--bg2),var(--bg3)); background-size:300% 300%; animation:grad 22s ease-in-out infinite}
+    @keyframes grad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .glow{position:fixed; inset:0; z-index:-1; pointer-events:none; filter:blur(60px)}
+    .glow::before,.glow::after{content:""; position:absolute; border-radius:50%; width:38vw; height:38vw; opacity:.35; background:radial-gradient(closest-side,var(--accent),transparent 70%); animation:drift 28s ease-in-out infinite}
+    .glow::before{left:-10vw; top:-6vw}
+    .glow::after{right:-12vw; bottom:-10vw; animation-delay:-8s}
+    @keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(6vw,4vw)}}
+    canvas#dots{position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.45}
+
+    .nav{max-width:1120px; margin:0 auto; padding:18px 20px; display:flex; align-items:center; justify-content:space-between}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:700}
+    .logo{width:38px; height:38px; display:grid; place-items:center; border-radius:12px; background:linear-gradient(135deg,var(--primary),#6fb3ff); color:#fff; box-shadow:var(--shadow)}
+    .nav a{color:var(--muted); text-decoration:none; margin-left:18px}
+    .cta{background:var(--primary); color:#fff; padding:10px 16px; border-radius:12px; text-decoration:none; box-shadow:0 8px 24px rgba(42,115,255,.25)}
+
+    .hero{max-width:1120px; margin:40px auto; padding:0 20px; text-align:center}
+    .headline{font-size:44px; margin:0 0 14px}
+    .headline b{background:linear-gradient(90deg,var(--primary),#2fb5ff); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .tag{display:inline-block; padding:6px 10px; border-radius:999px; background:var(--glass-strong); backdrop-filter:blur(10px); font-size:13px; color:var(--muted); box-shadow:var(--shadow)}
+    .hero p{font-size:18px; color:#2b3e77; margin:12px 0 22px}
+
+    .demo{max-width:960px; margin:60px auto; display:flex; gap:30px; padding:0 20px; align-items:center}
+    .pdf-box{flex:1; display:flex; justify-content:center; align-items:center; position:relative; height:220px}
+    .pdf-icon{font-size:60px; color:var(--primary); position:absolute; animation:drop 4s infinite}
+    @keyframes drop{0%{top:-60px; opacity:0}30%{top:40px; opacity:1}70%{top:100px; opacity:1}100%{top:180px; opacity:0}}
+
+    .output-box{flex:2; background:var(--glass-strong); border-radius:16px; padding:20px; font-family:"Fira Code", "JetBrains Mono", ui-monospace, monospace; font-size:15px; color:#1e3172; box-shadow:var(--shadow); min-height:160px}
+    .cursor{display:inline-block; width:10px; background:#2a73ff; margin-left:2px; animation:blink 1s step-end infinite}
+    @keyframes blink{50%{background:transparent}}
+
+    .section{max-width:1120px; margin:40px auto; padding:0 20px}
+    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+    .card{background:var(--glass-strong); border-radius:18px; padding:16px; box-shadow:var(--shadow)}
+    .card h3{margin:6px 0 8px; font-size:18px}
+    .card p{margin:0; color:#324c86}
+
+    footer{max-width:1120px; margin:40px auto 30px; padding:0 20px; color:var(--muted); display:flex; align-items:center; justify-content:space-between}
+
+    /* Vertical “AquaFlow Model” flag */
+    .vertical-flag{
+      position:fixed; left:14px; top:50%; transform:translateY(-50%);
+      writing-mode:vertical-rl; text-orientation:upright;
+      letter-spacing:2px; font-weight:800; font-size:20px; line-height:1.1;
+      color:#fff; background:linear-gradient(180deg,#2a73ff,#2fb5ff);
+      border-radius:14px; padding:18px 10px; box-shadow:0 12px 30px rgba(42,115,255,.35);
+      backdrop-filter:blur(6px); user-select:none; z-index:10;
+    }
+    .vertical-flag::after{ /* small decorative dot */
+      content:""; width:6px; height:6px; border-radius:50%; display:block; margin:10px auto 0; background:rgba(255,255,255,.9);
+    }
+
+    @media (max-width: 900px){
+      .grid{grid-template-columns:1fr 1fr}
+      .demo{flex-direction:column}
+    }
+    @media (max-width: 600px){
+      .headline{font-size:34px}
+      .vertical-flag{left:6px; font-size:16px; padding:14px 8px; border-radius:10px}
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-anim"></div>
+  <div class="glow"></div>
+  <canvas id="dots"></canvas>
+
+  <!-- Vertical “AquaFlow Model” flag -->
+  <div class="vertical-flag" aria-label="AquaFlow Model">AquaFlow Model</div>
+
+  <nav class="nav" aria-label="Main navigation">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">水</div>
+      <div>AquaFlow</div>
+    </div>
+    <div>
+      <a href="#demo">Demo</a>
+      <a href="#features">Features</a>
+      <a class="cta" href="#connect">Contact</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <span class="tag">Three Thousand Rivers · One Sip</span>
+    <h1 class="headline">Let information flow like water, <b>to where it's needed</b></h1>
+    <p>On-device inference · Ultra-low cost · A 4B model can process 20–100 PDFs in real time<br>In the noisy ocean of information, we believe <b>restraint and focus</b> are more precious than “more.”<br><small style='color:#4a5a8a'>“The gentleman’s friendship is as light as water, the petty man’s is as sweet as wine. Gentlemen stay close through simplicity, petty men break apart through indulgence. Thus it is said: The gentleman’s friendship is light as water. Three thousand rivers, I only take one sip.” [Zhuangzi · Wai Wu]</small></p>
+  </header>
+
+  <section class="demo" id="demo" aria-label="Demo">
+    <div class="pdf-box">
+      <div class="pdf-icon" aria-hidden="true">📄</div>
+    </div>
+    <div class="output-box" id="typewriter" aria-live="polite" aria-atomic="true"></div>
+  </section>
+
+  <section class="section" id="features">
+    <h2>Six Principles of AquaFlow</h2>
+    <div class="grid">
+      <div class="card"><h3>Efficient Reasoning</h3><p>Adopts lightweight architecture and context compression to ensure even small models can complete complex reasoning.</p></div>
+      <div class="card"><h3>Hierarchical Modeling</h3><p>Organizes knowledge with tree-structured citation to avoid semantic drift and enable layered information management.</p></div>
+      <div class="card"><h3>Context Alignment</h3><p>Aligns outputs with context to ensure consistency with evidence paths.</p></div>
+      <div class="card"><h3>Interpretability</h3><p>Outputs include explicit citations, enhancing transparency and credibility.</p></div>
+      <div class="card"><h3>Low-resource Adaptation</h3><p>Runs with just 4B parameters, supporting on-device and low-cost deployment.</p></div>
+      <div class="card"><h3>Academic Rigor</h3><p>Follows biomedical information processing standards, emphasizing evidence, sources, and logical chains.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="connect">
+    <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:16px">
+      <div>
+        <h3 style="margin:0 0 6px">Talk to Us</h3>
+        <p style="margin:0; color:#36507f">If you are also seeking a more measured and restrained way to handle information, we’d love to talk with you.</p>
+      </div>
+      <a class="cta" href="mailto:medis2025@outlook.com">Email Us</a>
+    </div>
+  </section>
+
+  <footer>
+    <div>© AquaFlow</div>
+    <div style="font-size:12px"> One Sip · On-device Inference</div>
+  </footer>
+
+  <script>
+    // Particle background
+    (function(){const c=document.getElementById('dots');const ctx=c.getContext('2d');let w,h,pxls=[];const N=70;function resize(){w=innerWidth;h=innerHeight;c.width=w;c.height=h}addEventListener('resize',resize);resize();function spawn(){pxls=[];for(let i=0;i<N;i++){pxls.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.6+0.6,a:.15+Math.random()*.25});}}spawn();(function step(){ctx.clearRect(0,0,w,h);for(const p of pxls){p.x+=p.vx;p.y+=p.vy;if(p.x<-10)p.x=w+10;if(p.x>w+10)p.x=-10;if(p.y<-10)p.y=h+10;if(p.y>h+10)p.y=-10;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(117,197,255,${p.a})`;ctx.fill();}requestAnimationFrame(step);})();})();
+
+    // Typewriter animation
+    const demoText = [
+      "<statement>UGT1A7 promoter variants can reduce transcription efficiency, with enzyme activity around 30% of wild-type.</statement><cite>[c3,6,3]</cite>",
+      "<statement>The report recommends additional validation for highly homologous genes and small CNVs.</statement><cite>[c4,2,3][c4,3,3]</cite>",
+      "<statement>Multiple PDF inputs can be analyzed and outputs generated with citations.</statement><cite>[c1,2,2]</cite>"
+    ];
+    let i=0, j=0; const box=document.getElementById('typewriter');
+    function type(){
+      if(i<demoText.length){
+        if(j<demoText[i].length){
+          box.innerHTML = demoText[i].substring(0,j)+"<span class='cursor'></span>";
+          j++; setTimeout(type,30);
+        }else{ j=0; i++; setTimeout(type,1000); }
+      }else{ i=0; j=0; setTimeout(type,1000); }
+    }
+    type();
+  </script>
+</body>
+</html>

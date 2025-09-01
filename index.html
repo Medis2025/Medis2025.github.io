@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AquaFlow｜Language Selector</title>
+  <script>
+    // 自动语言检测
+    window.onload = function() {
+      const lang = (navigator.language || navigator.userLanguage || "zh-CN").toLowerCase();
+      if (lang.startsWith("zh-tw") || lang.startsWith("zh-hk") || lang.startsWith("zh-mo")) {
+        window.location.href = "ruoshui_trd.html";
+      } else if (lang.startsWith("en")) {
+        window.location.href = "ruoshui_en.html";
+      } else {
+        // 默认简体
+        window.location.href = "ruoshui.html";
+      }
+    };
+  </script>
+  <style>
+    body {
+      margin:0; display:flex; align-items:center; justify-content:center;
+      height:100vh; font-family:sans-serif; background:#f0f6ff; color:#333;
+    }
+    .card {text-align:center; padding:20px; background:#fff; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.1);}
+    .card h1{margin:0 0 12px;}
+    .card a{display:inline-block; margin:6px; padding:10px 16px; border-radius:8px; background:#2a73ff; color:#fff; text-decoration:none; font-weight:600;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌊 AquaFlow</h1>
+    <p>正在根据您的浏览器语言跳转...</p>
+    <p>如未自动跳转，请选择：</p>
+    <a href="ruoshui.html">简体中文</a>
+    <a href="ruoshui_trd.html">繁體中文</a>
+    <a href="ruoshui_en.html">English</a>
+  </div>
+</body>
+</html>
